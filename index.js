@@ -32,24 +32,23 @@ async function run() {
   try {
     await client.connect();
     console.log("Database connected");
-//     const productCollection = client
-//       .db("refrigerator")
-//       .collection("addedItems");
+    const productCollection = client.db("comparts").collection("products")
 
-//     // get all product api
-//     app.get("/manage", async (req, res) => {
-//       const query = {};
-//       const cursor = productCollection.find(query);
-//       const product = await cursor.toArray();
-//       res.send(product);
-//     });
 
-//     // add single product
-//     app.post("/product", async (req, res) => {
-//       const newProduct = req.body;
-//       const result = await productCollection.insertOne(newProduct);
-//       res.send(result);
-//     });
+    // get all product api
+    app.get("/products", async (req, res) => {
+      const query = {};
+      const cursor = productCollection.find(query);
+      const product = await cursor.toArray();
+      res.send(product);
+    });
+
+    // // add single product
+    // app.post("/product", async (req, res) => {
+    //   const newProduct = req.body;
+    //   const result = await productCollection.insertOne(newProduct);
+    //   res.send(result);
+    // });
   } finally {
   }
 }
