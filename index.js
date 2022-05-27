@@ -1,4 +1,5 @@
 const express = require("express");
+const jwt = require('jsonwebtoken');
 const cors = require("cors");
 const { MongoClient, ServerApiVersion } = require('mongodb');
 
@@ -34,6 +35,7 @@ async function run() {
     console.log("Database connected");
     const productCollection = client.db("comparts").collection("products")
 
+    const usersCollection = client.db("comparts").collection('users')
 
     // get all product api
     app.get("/products", async (req, res) => {
@@ -42,7 +44,32 @@ async function run() {
       const product = await cursor.toArray();
       res.send(product);
     });
-
+    app.get('/user', async (req, res) => {
+      const query = {}
+      const cursor = usersCollection.find(query)
+      const users = await cursor.toArray()
+      res.send(users)
+    })
+    app.put("/user/:email", async (req, res) => {
+      const email = req.params.email;
+      const filter = { email: email };
+      const options = { upsert: true };
+      const user = req.body;
+      const updatedDoc = {
+        $set: user,
+      };
+      const result = await usersCollection.updateOne(
+        filter,
+        updatedDoc,
+        options
+      );
+      const token = jwt.sign(
+        { email: email },
+        process.env.ACCESS_TOKEN_SECRET,
+        { expiresIn: "1h" }
+      );
+      res.send({ result, token });
+    });
     // add single product
     app.post("/product", async (req, res) => {
       const newProduct = req.body;
