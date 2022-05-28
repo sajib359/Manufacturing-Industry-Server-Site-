@@ -2,10 +2,11 @@ const express = require("express");
 const jwt = require('jsonwebtoken');
 const cors = require("cors");
 const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
-const verify = require("jsonwebtoken/verify");
+
 
 require("dotenv").config();
 const app = express();
+const stripe = require("stripe")(process.env.STRIPE_SECRET_KEY);
 const port = process.env.PORT || 5000;
 
 app.use(cors());
@@ -49,10 +50,14 @@ async function run() {
   try {
     await client.connect();
     console.log("Database connected");
-    const productCollection = client.db("comparts").collection("products")
 
+    const productCollection = client.db("comparts").collection("products")
     const usersCollection = client.db("comparts").collection('users')
     const orderCollection = client.db("comparts").collection('orders')
+    const reviewsCollection = client.db("comparts").collection('reviews')
+    const paymentsCollection = client.db("comparts").collection('payments')
+
+
 
     // get all product api
     app.get("/products", async (req, res) => {
@@ -120,6 +125,20 @@ async function run() {
       const result = await productCollection.insertOne(newProduct);
       res.send(result);
     });
+      // Add Reviews
+      app.post("/reviews", async (req, res) => {
+        const review = req.body;
+        const result = await reviewsCollection.insertOne(review);
+        res.send(result);
+      });
+      // get all reviews 
+      app.get("/reviews", async (req, res) => {
+        const query = {};
+        const cursor = reviewsCollection.find(query);
+        const reviews = await cursor.toArray();
+        res.send(reviews);
+      });
+  
 
     // delete api
     app.delete("/products/:id", async (req, res) => {
@@ -173,6 +192,41 @@ async function run() {
         };
         const result = await usersCollection.updateOne(filter, updatedDoc);
         res.send(result);
+      });
+      // for payment
+      app.get("/orders/:id", async (req, res) => {
+        const id= req.params.id 
+        const query ={_id:ObjectId(id)}
+        const order = await orderCollection.findOne(query)
+        res.send(order);
+      });
+
+      app.post("/create-payment-intent",  async (req, res) => {
+        const order = req.body;
+        const price = order.orderPrice;
+        const amount = price * 100;
+        const paymentIntent = await stripe.paymentIntents.create({
+          amount: amount,
+          currency: "usd",
+          payment_method_types: ["card"],
+        });
+        res.send({ clientSecret: paymentIntent.client_secret });
+      });
+
+      app.patch("/order/:id",  async (req, res) => {
+        const id = req.params.id;
+        const payment = req.body;
+        const filter = { _id: ObjectId(id) };
+        const updateDoc = {
+          $set: {
+            paid: true,
+            transactionId: payment.transactionId,
+          },
+        };
+  
+        const updatedOrder = await orderCollection.updateOne(filter, updateDoc);
+        const result = await paymentsCollection.insertOne(payment);
+        res.send(updateDoc);
       });
   } finally {
   }
