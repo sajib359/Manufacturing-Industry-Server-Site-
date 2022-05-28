@@ -69,6 +69,14 @@ async function run() {
       res.send(product)
     })
 
+    // get single user info
+    app.get("/user/:email", async (req, res) => {
+      const email = req.params.email;
+      const query = { email: email };
+      const order = await usersCollection.findOne(query);
+      res.send(order);
+    });
+
     app.get('/user', async (req, res) => {
       const query = {}
       const cursor = usersCollection.find(query)
@@ -110,10 +118,22 @@ async function run() {
 
     app.get("/order", async (req, res) => {
       const userEmail = req.query.userEmail;
-        const query = { userEmail: userEmail };
-        const orders = await orderCollection.find(query).toArray();
-        res.send(orders);
-      
+      const query = { userEmail: userEmail };
+      const orders = await orderCollection.find(query).toArray();
+      res.send(orders);
+    });
+
+    // make admin
+    app.put("/user/admin/:email", async (req, res) => {
+      const email = req.params.email;
+      const filter = { email: email };
+      const updatedDoc = {
+        $set: {
+          role: "admin",
+        },
+      };
+      const result = await usersCollection.updateOne(filter, updatedDoc);
+      res.send(result)
     });
   } finally {
   }
