@@ -20,7 +20,7 @@ app.listen(port, () => {
   console.log(`Example app listening on port ${port}`);
 });
 
-// connection to mongodb
+// connection to mongodb success
 const uri =
   `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@cluster0.ofuvw.mongodb.net/?retryWrites=true&w=majority`;
 const client = new MongoClient(uri, {
@@ -83,15 +83,15 @@ async function run() {
       const order = await usersCollection.findOne(query);
       res.send(order);
     });
-    
-      // get all user
-      app.get("/users",  async (req, res) => {
-        const query = {};
-        const cursor = usersCollection.find(query);
-        const orders = await cursor.toArray();
-        res.send(orders);
-      });
-  
+
+    // get all user
+    app.get("/users", async (req, res) => {
+      const query = {};
+      const cursor = usersCollection.find(query);
+      const orders = await cursor.toArray();
+      res.send(orders);
+    });
+
 
     app.get('/user', async (req, res) => {
       const query = {}
@@ -125,20 +125,20 @@ async function run() {
       const result = await productCollection.insertOne(newProduct);
       res.send(result);
     });
-      // Add Reviews
-      app.post("/reviews", async (req, res) => {
-        const review = req.body;
-        const result = await reviewsCollection.insertOne(review);
-        res.send(result);
-      });
-      // get all reviews 
-      app.get("/reviews", async (req, res) => {
-        const query = {};
-        const cursor = reviewsCollection.find(query);
-        const reviews = await cursor.toArray();
-        res.send(reviews);
-      });
-  
+    // Add Reviews
+    app.post("/reviews", async (req, res) => {
+      const review = req.body;
+      const result = await reviewsCollection.insertOne(review);
+      res.send(result);
+    });
+    // get all reviews 
+    app.get("/reviews", async (req, res) => {
+      const query = {};
+      const cursor = reviewsCollection.find(query);
+      const reviews = await cursor.toArray();
+      res.send(reviews);
+    });
+
 
     // delete api
     app.delete("/products/:id", async (req, res) => {
@@ -181,53 +181,53 @@ async function run() {
       const result = await usersCollection.updateOne(filter, updatedDoc);
       res.send(result)
     });
-      // update Profile
-      app.put("/profile/:email", async (req, res) => {
-        const profile = req.body;
-        console.log(profile);
-        const email = req.params.email;
-        const filter = { email: email };
-        const updatedDoc = {
-          $set: profile,
-        };
-        const result = await usersCollection.updateOne(filter, updatedDoc);
-        res.send(result);
-      });
-      // for payment
-      app.get("/orders/:id", async (req, res) => {
-        const id= req.params.id 
-        const query ={_id:ObjectId(id)}
-        const order = await orderCollection.findOne(query)
-        res.send(order);
-      });
+    // update Profile
+    app.put("/profile/:email", async (req, res) => {
+      const profile = req.body;
+      console.log(profile);
+      const email = req.params.email;
+      const filter = { email: email };
+      const updatedDoc = {
+        $set: profile,
+      };
+      const result = await usersCollection.updateOne(filter, updatedDoc);
+      res.send(result);
+    });
+    // for payment
+    app.get("/orders/:id", async (req, res) => {
+      const id = req.params.id
+      const query = { _id: ObjectId(id) }
+      const order = await orderCollection.findOne(query)
+      res.send(order);
+    });
 
-      app.post("/create-payment-intent",  async (req, res) => {
-        const order = req.body;
-        const price = order.orderPrice;
-        const amount = price * 100;
-        const paymentIntent = await stripe.paymentIntents.create({
-          amount: amount,
-          currency: "usd",
-          payment_method_types: ["card"],
-        });
-        res.send({ clientSecret: paymentIntent.client_secret });
+    app.post("/create-payment-intent", async (req, res) => {
+      const order = req.body;
+      const price = order.orderPrice;
+      const amount = price * 100;
+      const paymentIntent = await stripe.paymentIntents.create({
+        amount: amount,
+        currency: "usd",
+        payment_method_types: ["card"],
       });
+      res.send({ clientSecret: paymentIntent.client_secret });
+    });
 
-      app.patch("/order/:id",  async (req, res) => {
-        const id = req.params.id;
-        const payment = req.body;
-        const filter = { _id: ObjectId(id) };
-        const updateDoc = {
-          $set: {
-            paid: true,
-            transactionId: payment.transactionId,
-          },
-        };
-  
-        const updatedOrder = await orderCollection.updateOne(filter, updateDoc);
-        const result = await paymentsCollection.insertOne(payment);
-        res.send(updateDoc);
-      });
+    app.patch("/order/:id", async (req, res) => {
+      const id = req.params.id;
+      const payment = req.body;
+      const filter = { _id: ObjectId(id) };
+      const updateDoc = {
+        $set: {
+          paid: true,
+          transactionId: payment.transactionId,
+        },
+      };
+
+      const updatedOrder = await orderCollection.updateOne(filter, updateDoc);
+      const result = await paymentsCollection.insertOne(payment);
+      res.send(updateDoc);
+    });
   } finally {
   }
 }
