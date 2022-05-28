@@ -62,6 +62,8 @@ async function run() {
       res.send(product);
     });
 
+
+
     app.get("/products/:productId", async (req, res) => {
       const id = req.params.productId;
       const query = { _id: ObjectId(id) }
@@ -76,6 +78,15 @@ async function run() {
       const order = await usersCollection.findOne(query);
       res.send(order);
     });
+    
+      // get all user
+      app.get("/users",  async (req, res) => {
+        const query = {};
+        const cursor = usersCollection.find(query);
+        const orders = await cursor.toArray();
+        res.send(orders);
+      });
+  
 
     app.get('/user', async (req, res) => {
       const query = {}
@@ -108,6 +119,14 @@ async function run() {
       const newProduct = req.body;
       const result = await productCollection.insertOne(newProduct);
       res.send(result);
+    });
+
+    // get all order
+    app.get("/orders", async (req, res) => {
+      const query = {};
+      const cursor = orderCollection.find(query);
+      const orders = await cursor.toArray();
+      res.send(orders);
     });
 
     app.post("/order", async (req, res) => {
