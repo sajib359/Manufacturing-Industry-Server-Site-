@@ -121,6 +121,14 @@ async function run() {
       res.send(result);
     });
 
+    // delete api
+    app.delete("/products/:id", async (req, res) => {
+      const id = req.params.id;
+      const filter = { _id: ObjectId(id) };
+      const result = await productCollection.deleteOne(filter);
+      res.send(result);
+    });
+
     // get all order
     app.get("/orders", async (req, res) => {
       const query = {};
@@ -154,6 +162,18 @@ async function run() {
       const result = await usersCollection.updateOne(filter, updatedDoc);
       res.send(result)
     });
+      // update Profile
+      app.put("/profile/:email", async (req, res) => {
+        const profile = req.body;
+        console.log(profile);
+        const email = req.params.email;
+        const filter = { email: email };
+        const updatedDoc = {
+          $set: profile,
+        };
+        const result = await usersCollection.updateOne(filter, updatedDoc);
+        res.send(result);
+      });
   } finally {
   }
 }
