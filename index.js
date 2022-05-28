@@ -2,6 +2,7 @@ const express = require("express");
 const jwt = require('jsonwebtoken');
 const cors = require("cors");
 const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
+const verify = require("jsonwebtoken/verify");
 
 require("dotenv").config();
 const app = express();
@@ -109,14 +110,10 @@ async function run() {
 
     app.get("/order", async (req, res) => {
       const userEmail = req.query.userEmail;
-      const decodedEmail = req.decoded.email;
-      if (userEmail === decodedEmail) {
         const query = { userEmail: userEmail };
         const orders = await orderCollection.find(query).toArray();
         res.send(orders);
-      } else {
-        return res.status(403).send({ message: "Forbidden Access" });
-      }
+      
     });
   } finally {
   }
